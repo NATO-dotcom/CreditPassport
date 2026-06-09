@@ -40,6 +40,7 @@ dev_dependencies:
     sdk: flutter
   flutter_riverpod: ^2.4.9
   file_picker: ^8.1.2
+  fl_chart: ^0.69.0
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

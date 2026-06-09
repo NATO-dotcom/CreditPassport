@@ -36,7 +36,10 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Upload Statement', style: TextStyle(fontWeight: FontWeight.w600)),
+        title: const Text(
+          'Upload Statement',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -52,7 +55,11 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                 // Restored descriptive text at the top
                 const Text(
                   'Select your encrypted M-Pesa or Bank PDF statement to begin local extraction.',
-                  style: TextStyle(fontSize: 16, color: Colors.black54, height: 1.4),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                    height: 1.4,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const Spacer(),
@@ -66,11 +73,18 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                 _buildFileCard(selectedFileName),
                 const Spacer(),
                 uploadState.when(
-                  loading: () => const Center(child: CircularProgressIndicator(color: Colors.teal)),
-                  error: (error, stack) => Column(children: [
-                    Text(error.toString(), style: const TextStyle(color: Colors.red)),
-                    _buildProcessButton(selectedFileName)
-                  ]),
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(color: Colors.teal),
+                  ),
+                  error: (error, stack) => Column(
+                    children: [
+                      Text(
+                        error.toString(),
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                      _buildProcessButton(selectedFileName),
+                    ],
+                  ),
                   data: (_) => _buildProcessButton(selectedFileName),
                 ),
               ],
@@ -86,25 +100,37 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
       borderRadius: BorderRadius.circular(24),
       onTap: () async {
         FilePickerResult? result = await FilePicker.platform.pickFiles(
-          type: FileType.custom, 
-          allowedExtensions: ['pdf']
+          type: FileType.custom,
+          allowedExtensions: ['pdf'],
         );
-        if (result != null) ref.read(selectedFileProvider.notifier).state = result.files.single.name;
+        if (result != null) {
+          ref.read(selectedFileProvider.notifier).state =
+              result.files.single.name;
+        }
       },
       child: Container(
         width: double.infinity,
-        height: 180,
+        height: 240, // Increased from 180 to give it much more presence
         decoration: BoxDecoration(
           color: Colors.teal.shade50.withOpacity(0.4),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.teal.shade300, width: 2, style: BorderStyle.solid),
+          border: Border.all(
+            color: Colors.teal.shade300,
+            width: 2,
+            style: BorderStyle.solid,
+          ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.cloud_upload, size: 64, color: Colors.teal.shade400),
-            const SizedBox(height: 16),
-            const Text('Tap to Select PDF', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            // Increased the icon size from 64 to 80 to match the new box size
+            Icon(Icons.cloud_upload, size: 80, color: Colors.teal.shade400),
+            const SizedBox(height: 20),
+            // Bumped the font size up slightly to 20
+            const Text(
+              'Tap to Select PDF',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
       ),
@@ -115,7 +141,10 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('How it works:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        const Text(
+          'How it works:',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
         const SizedBox(height: 16),
         _StepItem(
           icon: Icons.insert_drive_file,
@@ -154,21 +183,41 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.picture_as_pdf, color: Colors.redAccent, size: 30),
+              const Icon(
+                Icons.picture_as_pdf,
+                color: Colors.redAccent,
+                size: 30,
+              ),
               const SizedBox(width: 16),
-              Expanded(child: Text(fileName, style: const TextStyle(fontWeight: FontWeight.bold))),
-              IconButton(icon: const Icon(Icons.cancel), onPressed: () => ref.read(selectedFileProvider.notifier).state = null),
+              Expanded(
+                child: Text(
+                  fileName,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.cancel),
+                onPressed: () =>
+                    ref.read(selectedFileProvider.notifier).state = null,
+              ),
             ],
           ),
           const Divider(height: 32),
-          const Text('Document Password', style: TextStyle(fontWeight: FontWeight.w600)),
+          const Text(
+            'Document Password',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 8),
           TextField(
             controller: _passwordController,
             obscureText: true,
             decoration: InputDecoration(
-              filled: true, fillColor: Colors.white,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
               hintText: 'Enter PDF Password',
             ),
           ),
@@ -185,19 +234,34 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
           padding: const EdgeInsets.symmetric(vertical: 18),
           backgroundColor: Colors.teal.shade700,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
         onPressed: () async {
           if (_passwordController.text.isNotEmpty) {
-            await ref.read(uploadControllerProvider.notifier).processStatement(fileName, _passwordController.text);
+            await ref
+                .read(uploadControllerProvider.notifier)
+                .processStatement(fileName, _passwordController.text);
             if (ref.read(uploadControllerProvider).hasValue && mounted) {
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashboardScreen()));
+              _passwordController.clear();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DashboardScreen(),
+                ),
+              );
             }
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter password')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Please enter password')),
+            );
           }
         },
-        child: const Text('Process Locally', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        child: const Text(
+          'Process Locally',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }
@@ -207,9 +271,13 @@ class _StepItem extends StatelessWidget {
   final IconData icon;
   final String text;
   final Color iconColor;
-  
-  const _StepItem({required this.icon, required this.text, required this.iconColor});
-  
+
+  const _StepItem({
+    required this.icon,
+    required this.text,
+    required this.iconColor,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -227,8 +295,12 @@ class _StepItem extends StatelessWidget {
           const SizedBox(width: 16),
           Expanded(
             child: Text(
-              text, 
-              style: TextStyle(color: Colors.grey.shade700, fontSize: 15, fontWeight: FontWeight.w500),
+              text,
+              style: TextStyle(
+                color: Colors.grey.shade700,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
