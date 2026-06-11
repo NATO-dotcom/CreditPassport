@@ -7,7 +7,6 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 1. Add a premium full-screen gradient
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -19,21 +18,19 @@ class WelcomeScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              // 2. Expand the hero section to fill empty space
               Expanded(
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
-                      // Our new custom logo widget called here!
                       CreditPassportLogo(),
                       SizedBox(height: 24),
                       Text(
                         'CreditPassport',
                         style: TextStyle(
-                          fontSize: 36, 
-                          fontWeight: FontWeight.bold, 
-                          color: Colors.white, 
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                           letterSpacing: 1.2,
                         ),
                       ),
@@ -41,8 +38,7 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              
-              // 3. Group the text and button into a bottom card
+
               Container(
                 padding: const EdgeInsets.all(32.0),
                 decoration: const BoxDecoration(
@@ -57,13 +53,21 @@ class WelcomeScreen extends StatelessWidget {
                   children: [
                     const Text(
                       'Your Financial Identity,\nVerified Locally.',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, height: 1.2),
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        height: 1.2,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
                     const Text(
                       'Generate your verified passport instantly. 100% Private. Your data never leaves this device.',
-                      style: TextStyle(fontSize: 16, color: Colors.black54, height: 1.4),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black54,
+                        height: 1.4,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),
@@ -73,15 +77,25 @@ class WelcomeScreen extends StatelessWidget {
                         backgroundColor: Colors.teal.shade700,
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const UploadScreen()),
+                          MaterialPageRoute(
+                            builder: (context) => const UploadScreen(),
+                          ),
                         );
                       },
-                      child: const Text('Get Started', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        'Get Started',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -94,8 +108,6 @@ class WelcomeScreen extends StatelessWidget {
   }
 }
 
-// --- CUSTOM WIDGETS ---
-
 class CreditPassportLogo extends StatelessWidget {
   const CreditPassportLogo({super.key});
 
@@ -107,7 +119,6 @@ class CreditPassportLogo extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // 1. The Ambient Glow
           Container(
             width: 110,
             height: 110,
@@ -118,30 +129,35 @@ class CreditPassportLogo extends StatelessWidget {
                   color: Colors.white.withOpacity(0.2),
                   blurRadius: 40,
                   spreadRadius: 10,
-                )
+                ),
               ],
             ),
           ),
-          
-          // 2. The Background Card (Tilted) - IMPROVED OUTLINE
+
           Transform.rotate(
-            angle: -0.2, // Tilts to the left
+            angle: -0.2,
             child: Container(
               width: 85,
               height: 115,
               decoration: BoxDecoration(
                 color: Colors.teal.shade900,
                 borderRadius: BorderRadius.circular(16),
-                // Sharper, semi-transparent border for a premium edge
-                border: Border.all(color: Colors.teal.shade300.withOpacity(0.5), width: 1.5), 
+
+                border: Border.all(
+                  color: Colors.teal.shade300.withOpacity(0.5),
+                  width: 1.5,
+                ),
                 boxShadow: const [
-                  BoxShadow(color: Colors.black45, blurRadius: 10, offset: Offset(-2, 4))
+                  BoxShadow(
+                    color: Colors.black45,
+                    blurRadius: 10,
+                    offset: Offset(-2, 4),
+                  ),
                 ],
               ),
             ),
           ),
 
-          // 3. The Main Front Card (The "Passport") - CRISPER SHADOWS
           Container(
             width: 90,
             height: 125,
@@ -152,10 +168,14 @@ class CreditPassportLogo extends StatelessWidget {
                 colors: [Colors.white, Colors.grey.shade100],
               ),
               borderRadius: BorderRadius.circular(16),
-              // Crisp white outline to separate it cleanly from the background card
-              border: Border.all(color: Colors.white, width: 2), 
+
+              border: Border.all(color: Colors.white, width: 2),
               boxShadow: const [
-                BoxShadow(color: Colors.black26, blurRadius: 15, offset: Offset(0, 8))
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 15,
+                  offset: Offset(0, 8),
+                ),
               ],
             ),
             child: Column(
@@ -164,19 +184,27 @@ class CreditPassportLogo extends StatelessWidget {
                 Icon(Icons.fingerprint, size: 50, color: Colors.teal.shade800),
                 const SizedBox(height: 12),
                 Container(
-                  width: 45, height: 4, 
-                  decoration: BoxDecoration(color: Colors.teal.shade200, borderRadius: BorderRadius.circular(2))
+                  width: 45,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.teal.shade200,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Container(
-                  width: 30, height: 4, 
-                  decoration: BoxDecoration(color: Colors.teal.shade200, borderRadius: BorderRadius.circular(2))
+                  width: 30,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.teal.shade200,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ],
             ),
           ),
 
-          // 4. The Verification Badge - THICKER CUTOUT BORDER
+        
           Positioned(
             bottom: 12,
             right: 12,
@@ -185,14 +213,21 @@ class CreditPassportLogo extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.amber.shade400,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2.5), // Acts as a clean cutout
+                border: Border.all(
+                  color: Colors.white,
+                  width: 2.5,
+                ), 
                 boxShadow: const [
-                  BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 3))
-                ]
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 6,
+                    offset: Offset(0, 3),
+                  ),
+                ],
               ),
               child: Icon(Icons.check, size: 18, color: Colors.teal.shade900),
             ),
-          )
+          ),
         ],
       ),
     );

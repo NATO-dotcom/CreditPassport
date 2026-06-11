@@ -52,7 +52,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (selectedFileName == null) ...[
-                // Restored descriptive text at the top
+                
                 const Text(
                   'Select your encrypted M-Pesa or Bank PDF statement to begin local extraction.',
                   style: TextStyle(
@@ -63,10 +63,10 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                   textAlign: TextAlign.center,
                 ),
                 const Spacer(),
-                // Centered "Cool" Cloud Dropzone
+                
                 _buildCoolDropzone(),
                 const Spacer(),
-                // Instruction stepper with custom matching icons
+                
                 _buildInstructionStepper(),
                 const Spacer(),
               ] else ...[
@@ -110,7 +110,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
       },
       child: Container(
         width: double.infinity,
-        height: 240, // Increased from 180 to give it much more presence
+        height: 240, 
         decoration: BoxDecoration(
           color: Colors.teal.shade50.withOpacity(0.4),
           borderRadius: BorderRadius.circular(24),
@@ -123,10 +123,10 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Increased the icon size from 64 to 80 to match the new box size
+            
             Icon(Icons.cloud_upload, size: 80, color: Colors.teal.shade400),
             const SizedBox(height: 20),
-            // Bumped the font size up slightly to 20
+            
             const Text(
               'Tap to Select PDF',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),

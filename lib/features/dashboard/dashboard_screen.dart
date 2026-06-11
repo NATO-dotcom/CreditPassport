@@ -1,20 +1,22 @@
+import 'package:credit_passport/features/upload/upload_controller.dart';
 import 'package:credit_passport/models/score.dart';
+import 'package:credit_passport/services/api/trust_engine_client.dart';
+import 'package:credit_passport/services/pdf/pdf_generator.dart';
 import 'package:credit_passport/services/scoring/scoring_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../upload/upload_controller.dart';
+
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 2. Grab the parsed transactions from the Riverpod state
+   
     final uploadState = ref.watch(uploadControllerProvider);
     final transactions = uploadState.value ?? [];
 
-    // 3. RUN THE REAL ENGINE!
     final scoringEngine = ScoringEngine();
     final Score userScore = scoringEngine.calculateScore(transactions);
 
@@ -33,16 +35,14 @@ class DashboardScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // --- SCORE CARD ---
-              // Mapping the real overall score here
+              
               _buildScoreCard(userScore.overallScore, transactions.length),
               
               const SizedBox(height: 32),
               
-              // --- RADAR CHART (SPIDER WEB) ---
+             
               const Text('Financial Blueprint', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
-              // Mapping the real metric variables into the chart
               _buildRadarChartCard(
                 userScore.consistency, 
                 userScore.savingsRatio, 
@@ -53,27 +53,54 @@ class DashboardScreen extends ConsumerWidget {
               const Text('Metric Breakdown', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
 
-              // --- METRICS LIST ---
+            
               _buildMetricTile('Consistency', userScore.consistency, Icons.sync),
               _buildMetricTile('Savings Ratio', userScore.savingsRatio, Icons.account_balance_wallet),
               _buildMetricTile('Investment Multiplier', userScore.investmentMultiplier, Icons.trending_up),
 
               const SizedBox(height: 48),
 
-              // --- MONETIZATION BUTTON ---
+             
               ElevatedButton.icon(
-                icon: const Icon(Icons.picture_as_pdf),
-                label: const Text('Export Verified PDF (50 KES)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                icon: const Icon(Icons.verified_user),
+                label: const Text('Verify & Export PDF', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   backgroundColor: Colors.black87,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                onPressed: () {
+                onPressed: () async {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Payment & Export coming soon!')),
+                    const SnackBar(content: Text('Contacting Trust Engine...'), duration: Duration(seconds: 1)),
                   );
+
+                  try {
+                  
+                    final client = TrustEngineClient();
+                    final result = await client.signScore(userScore, transactions.length);
+                    
+                    final verificationId = result['verification_id'];
+                    
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Success! Secured with ID: $verificationId'),
+                          backgroundColor: Colors.green.shade700,
+                        ),
+                      );
+
+                      await PdfGenerator.exportPassport(userScore, verificationId, transactions.length);
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+                      );
+                    }
+                  }
                 },
               ),
             ],
@@ -139,7 +166,6 @@ class DashboardScreen extends ConsumerWidget {
           borderData: FlBorderData(show: false),
           radarBorderData: const BorderSide(color: Colors.transparent),
           getTitle: (index, angle) {
-            const style = TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 12);
             switch (index) {
               case 0: return const RadarChartTitle(text: 'Consistency', angle: 0);
               case 1: return const RadarChartTitle(text: 'Savings', angle: 0);
