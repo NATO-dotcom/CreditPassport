@@ -2,23 +2,71 @@ import 'package:credit_passport/features/upload/upload_controller.dart';
 import 'package:credit_passport/models/score.dart';
 import 'package:credit_passport/services/api/trust_engine_client.dart';
 import 'package:credit_passport/services/pdf/pdf_generator.dart';
-import 'package:credit_passport/services/scoring/scoring_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-   
-    final uploadState = ref.watch(uploadControllerProvider);
-    final transactions = uploadState.value ?? [];
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
 
-    final scoringEngine = ScoringEngine();
-    final Score userScore = scoringEngine.calculateScore(transactions);
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  bool _isLoading = true;
+  String? _errorMessage;
+  Score? _serverScore;
+  String? _verificationId;
+
+  @override
+  void initState() {
+    super.initState();
+    // As soon as the screen opens, ask Python to crunch the numbers!
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchServerScores();
+    });
+  }
+
+  Future<void> _fetchServerScores() async {
+    final transactions = ref.read(uploadControllerProvider).value ?? [];
+    
+    if (transactions.isEmpty) {
+      setState(() {
+        _errorMessage = "No transactions found to analyze.";
+        _isLoading = false;
+      });
+      return;
+    }
+
+    try {
+      final client = TrustEngineClient();
+      
+      // Throw the raw transactions over the fence to Python
+      final result = await client.signTransactions(transactions);
+      
+      // Build the Score object from Python's statistical math
+      setState(() {
+        _serverScore = Score(
+          overallScore: result['overall_score'].toDouble(),
+          consistency: result['consistency'].toDouble(),
+          savingsRatio: result['savings_ratio'].toDouble(),
+          investmentMultiplier: result['investment_multiplier'].toDouble(),
+        );
+        _verificationId = result['verification_id'];
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final transactions = ref.watch(uploadControllerProvider).value ?? [];
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
@@ -30,82 +78,128 @@ class DashboardScreen extends ConsumerWidget {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              
-              _buildScoreCard(userScore.overallScore, transactions.length),
-              
-              const SizedBox(height: 32),
-              
-             
-              const Text('Financial Blueprint', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              _buildRadarChartCard(
-                userScore.consistency, 
-                userScore.savingsRatio, 
-                userScore.investmentMultiplier
-              ),
+        child: _isLoading 
+            ? _buildLoadingState() 
+            : _errorMessage != null 
+                ? _buildErrorState() 
+                : _buildDashboardContent(transactions.length),
+      ),
+    );
+  }
 
-              const SizedBox(height: 32),
-              const Text('Metric Breakdown', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(color: Colors.teal),
+          const SizedBox(height: 24),
+          Text(
+            'Trust Engine is crunching the numbers...',
+            style: TextStyle(color: Colors.grey.shade700, fontSize: 16),
+          )
+        ],
+      ),
+    );
+  }
 
-            
-              _buildMetricTile('Consistency', userScore.consistency, Icons.sync),
-              _buildMetricTile('Savings Ratio', userScore.savingsRatio, Icons.account_balance_wallet),
-              _buildMetricTile('Investment Multiplier', userScore.investmentMultiplier, Icons.trending_up),
-
-              const SizedBox(height: 48),
-
-             
-              ElevatedButton.icon(
-                icon: const Icon(Icons.verified_user),
-                label: const Text('Verify & Export PDF', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  backgroundColor: Colors.black87,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                onPressed: () async {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Contacting Trust Engine...'), duration: Duration(seconds: 1)),
-                  );
-
-                  try {
-                  
-                    final client = TrustEngineClient();
-                    final result = await client.signScore(userScore, transactions.length);
-                    
-                    final verificationId = result['verification_id'];
-                    
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Success! Secured with ID: $verificationId'),
-                          backgroundColor: Colors.green.shade700,
-                        ),
-                      );
-
-                      await PdfGenerator.exportPassport(userScore, verificationId, transactions.length);
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-                      );
-                    }
-                  }
-                },
-              ),
-            ],
-          ),
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red, size: 60),
+            const SizedBox(height: 16),
+            Text(
+              'Connection Failed',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _errorMessage ?? 'Unknown error',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.black54),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _isLoading = true;
+                  _errorMessage = null;
+                });
+                _fetchServerScores();
+              },
+              child: const Text('Try Again'),
+            )
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDashboardContent(int txCount) {
+    // We can safely force unwrap here because this only builds if _serverScore is not null
+    final score = _serverScore!;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildScoreCard(score.overallScore, txCount),
+          
+          const SizedBox(height: 32),
+          
+          const Text('Financial Blueprint', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          _buildRadarChartCard(
+            score.consistency, 
+            score.savingsRatio, 
+            score.investmentMultiplier
+          ),
+
+          const SizedBox(height: 32),
+          const Text('Metric Breakdown', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+
+          _buildMetricTile('Consistency', score.consistency, Icons.sync),
+          _buildMetricTile('Savings Ratio', score.savingsRatio, Icons.account_balance_wallet),
+          _buildMetricTile('Investment Multiplier', score.investmentMultiplier, Icons.trending_up),
+
+          const SizedBox(height: 48),
+
+          ElevatedButton.icon(
+            icon: const Icon(Icons.verified_user),
+            label: const Text('Export Verified PDF', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              backgroundColor: Colors.black87,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+            onPressed: () async {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Generating Document: $_verificationId'),
+                  backgroundColor: Colors.teal.shade700,
+                ),
+              );
+
+              try {
+                // We already have the verified score and ID from the server! Just print the PDF.
+                await PdfGenerator.exportPassport(score, _verificationId!, txCount);
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+          ),
+        ],
       ),
     );
   }
