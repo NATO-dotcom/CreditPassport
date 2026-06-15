@@ -4,7 +4,9 @@ import 'package:file_picker/file_picker.dart';
 import 'upload_controller.dart';
 import '../dashboard/dashboard_screen.dart';
 
-final selectedFileProvider = StateProvider<String?>((ref) => null);
+// THE FIX: We changed this from String? to PlatformFile? 
+// Now it holds BOTH the file name and the file path!
+final selectedFileProvider = StateProvider<PlatformFile?>((ref) => null);
 
 class UploadScreen extends ConsumerStatefulWidget {
   const UploadScreen({super.key});
@@ -30,7 +32,8 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedFileName = ref.watch(selectedFileProvider);
+    // THE FIX: Watch the whole file object now
+    final selectedFile = ref.watch(selectedFileProvider);
     final uploadState = ref.watch(uploadControllerProvider);
 
     return Scaffold(
@@ -51,8 +54,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (selectedFileName == null) ...[
-                
+              if (selectedFile == null) ...[
                 const Text(
                   'Select your encrypted M-Pesa or Bank PDF statement to begin local extraction.',
                   style: TextStyle(
@@ -70,7 +72,8 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                 _buildInstructionStepper(),
                 const Spacer(),
               ] else ...[
-                _buildFileCard(selectedFileName),
+                // THE FIX: Pass just the name to the UI card
+                _buildFileCard(selectedFile.name),
                 const Spacer(),
                 uploadState.when(
                   loading: () => const Center(
@@ -81,11 +84,15 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                       Text(
                         error.toString(),
                         style: const TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
                       ),
-                      _buildProcessButton(selectedFileName),
+                      const SizedBox(height: 16),
+                      // THE FIX: Pass the PATH to the button so the controller can find the file
+                      _buildProcessButton(selectedFile.path!),
                     ],
                   ),
-                  data: (_) => _buildProcessButton(selectedFileName),
+                  // THE FIX: Pass the PATH to the button
+                  data: (_) => _buildProcessButton(selectedFile.path!),
                 ),
               ],
             ],
@@ -104,8 +111,8 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
           allowedExtensions: ['pdf'],
         );
         if (result != null) {
-          ref.read(selectedFileProvider.notifier).state =
-              result.files.single.name;
+          // THE FIX: Save the entire file object instead of just result.files.single.name
+          ref.read(selectedFileProvider.notifier).state = result.files.single;
         }
       },
       child: Container(
@@ -123,10 +130,8 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            
             Icon(Icons.cloud_upload, size: 80, color: Colors.teal.shade400),
             const SizedBox(height: 20),
-            
             const Text(
               'Tap to Select PDF',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -226,7 +231,8 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
     );
   }
 
-  Widget _buildProcessButton(String fileName) {
+  // THE FIX: Notice this function now accepts the filePath string directly!
+  Widget _buildProcessButton(String filePath) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
@@ -240,9 +246,12 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
         ),
         onPressed: () async {
           if (_passwordController.text.isNotEmpty) {
+            
+            // THE FIX: We pass the filePath string straight into the controller
             await ref
                 .read(uploadControllerProvider.notifier)
-                .processStatement(fileName, _passwordController.text);
+                .processStatement(filePath, _passwordController.text);
+
             if (ref.read(uploadControllerProvider).hasValue && mounted) {
               _passwordController.clear();
               Navigator.push(
