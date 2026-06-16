@@ -11,8 +11,10 @@ class PdfGenerator {
   ) async {
     final pdf = pw.Document();
 
+    // TEMPORARY LOCAL URL: This allows your phone's camera to scan the QR code 
+    // and access your Fedora laptop's Python web portal!
     final String verificationUrl =
-        'https://verify.creditpassport.app/check/$verificationId';
+        'http://192.168.122.84:8000/check/$verificationId';
 
     pdf.addPage(
       pw.Page(
@@ -38,35 +40,19 @@ class PdfGenerator {
                           letterSpacing: 1.5,
                         ),
                       ),
-                      pw.SizedBox(height: 8),
-                      pw.Container(
-                        padding: const pw.EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: pw.BoxDecoration(
-                          color: PdfColors.teal50,
-                          borderRadius: pw.BorderRadius.circular(4),
-                        ),
-                        child: pw.Text(
-                          'CRYPTOGRAPHICALLY VERIFIED',
-                          style: pw.TextStyle(
-                            fontSize: 12,
-                            fontWeight: pw.FontWeight.bold,
-                            color: PdfColors.teal800,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                      ),
-                      pw.SizedBox(height: 12),
+                      pw.SizedBox(height: 16), // Adjusted spacing
+                      
+                      // Updated ID Text
                       pw.Text(
-                        'ID: $verificationId',
+                        'Verification ID: $verificationId',
                         style: pw.TextStyle(
                           fontSize: 14,
                           color: PdfColors.grey700,
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
+                      
+                      // Kept the Date Issued
                       pw.Text(
                         'Issued: ${DateTime.now().toLocal().toString().split(' ')[0]}',
                         style: pw.TextStyle(
@@ -86,7 +72,7 @@ class PdfGenerator {
                     ),
                     child: pw.BarcodeWidget(
                       barcode: pw.Barcode.qrCode(),
-                      data: verificationUrl,
+                      data: verificationUrl, // This now feeds the local IP into the QR Code!
                       color: PdfColors.teal900,
                     ),
                   ),
