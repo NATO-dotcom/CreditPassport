@@ -11,10 +11,10 @@ class PdfGenerator {
   ) async {
     final pdf = pw.Document();
 
-    // TEMPORARY LOCAL URL: This allows your phone's camera to scan the QR code 
-    // and access your Fedora laptop's Python web portal!
+    // TEMPORARY LOCAL URL: This allows your phone's camera to scan the QR code
+    // and access your Fedora laptop's Python web portal// Delete the old 192.168.x.x string and paste this:
     final String verificationUrl =
-        'http://192.168.122.84:8000/check/$verificationId';
+        'https://credit-passport-api-1.onrender.com/check/$verificationId';
 
     pdf.addPage(
       pw.Page(
@@ -41,7 +41,6 @@ class PdfGenerator {
                         ),
                       ),
                       pw.SizedBox(height: 16), // Adjusted spacing
-                      
                       // Updated ID Text
                       pw.Text(
                         'Verification ID: $verificationId',
@@ -51,7 +50,7 @@ class PdfGenerator {
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
-                      
+
                       // Kept the Date Issued
                       pw.Text(
                         'Issued: ${DateTime.now().toLocal().toString().split(' ')[0]}',
@@ -72,7 +71,8 @@ class PdfGenerator {
                     ),
                     child: pw.BarcodeWidget(
                       barcode: pw.Barcode.qrCode(),
-                      data: verificationUrl, // This now feeds the local IP into the QR Code!
+                      data:
+                          verificationUrl, // This now feeds the local IP into the QR Code!
                       color: PdfColors.teal900,
                     ),
                   ),

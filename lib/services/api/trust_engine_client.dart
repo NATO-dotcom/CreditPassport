@@ -5,24 +5,28 @@ import 'dart:convert';
 import 'package:credit_passport/models/transaction.dart';
 
 class TrustEngineClient {
-  
-  // Your currently active local IP
-  static const String baseUrl = 'http://192.168.122.84:8000/api/v1';
-
+  static const String baseUrl =
+      'https://credit-passport-api-1.onrender.com/api/v1';
   // The function now accepts the raw list of transactions
-  Future<Map<String, dynamic>> signTransactions(List<Transaction> transactions) async {
+  Future<Map<String, dynamic>> signTransactions(
+    List<Transaction> transactions,
+  ) async {
     // Pointing to the new Python endpoint
     final url = Uri.parse('$baseUrl/sign-transactions');
 
     try {
       // Map your Dart objects into a list of JSON dictionaries for Python
-      final List<Map<String, dynamic>> payload = transactions.map((t) => {
-        'id': t.receiptNumber, 
-        'date': t.date.toIso8601String(),
-        'description': t.description,
-        'amount': t.amount,
-        'is_inflow': t.isInflow, 
-      }).toList();
+      final List<Map<String, dynamic>> payload = transactions
+          .map(
+            (t) => {
+              'id': t.receiptNumber,
+              'date': t.date.toIso8601String(),
+              'description': t.description,
+              'amount': t.amount,
+              'is_inflow': t.isInflow,
+            },
+          )
+          .toList();
 
       final response = await http.post(
         url,
@@ -31,7 +35,7 @@ class TrustEngineClient {
       );
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body); 
+        return jsonDecode(response.body);
       } else {
         throw Exception('Failed to sign transactions: ${response.body}');
       }
