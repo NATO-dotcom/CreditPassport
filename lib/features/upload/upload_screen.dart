@@ -4,8 +4,6 @@ import 'package:file_picker/file_picker.dart';
 import 'upload_controller.dart';
 import '../dashboard/dashboard_screen.dart';
 
-// THE FIX: We changed this from String? to PlatformFile? 
-// Now it holds BOTH the file name and the file path!
 final selectedFileProvider = StateProvider<PlatformFile?>((ref) => null);
 
 class UploadScreen extends ConsumerStatefulWidget {
@@ -32,7 +30,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // THE FIX: Watch the whole file object now
+    
     final selectedFile = ref.watch(selectedFileProvider);
     final uploadState = ref.watch(uploadControllerProvider);
 
@@ -72,7 +70,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                 _buildInstructionStepper(),
                 const Spacer(),
               ] else ...[
-                // THE FIX: Pass just the name to the UI card
+                
                 _buildFileCard(selectedFile.name),
                 const Spacer(),
                 uploadState.when(
