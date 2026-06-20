@@ -87,11 +87,10 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 16),
-                      // THE FIX: Pass the PATH to the button so the controller can find the file
+                      
                       _buildProcessButton(selectedFile.path!),
                     ],
                   ),
-                  // THE FIX: Pass the PATH to the button
                   data: (_) => _buildProcessButton(selectedFile.path!),
                 ),
               ],
@@ -139,6 +138,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
           ],
         ),
       ),
+    
     );
   }
 
