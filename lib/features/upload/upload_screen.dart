@@ -108,7 +108,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
           allowedExtensions: ['pdf'],
         );
         if (result != null) {
-          // THE FIX: Save the entire file object instead of just result.files.single.name
+          
           ref.read(selectedFileProvider.notifier).state = result.files.single;
         }
       },

@@ -1,21 +1,21 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-// We import the Transaction model now, not the Score model
+
 import 'package:credit_passport/models/transaction.dart';
 
 class TrustEngineClient {
   static const String baseUrl =
       'https://credit-passport-api-1.onrender.com/api/v1';
-  // The function now accepts the raw list of transactions
+  
   Future<Map<String, dynamic>> signTransactions(
     List<Transaction> transactions,
   ) async {
-    // Pointing to the new Python endpoint
+    
     final url = Uri.parse('$baseUrl/sign-transactions');
 
     try {
-      // Map your Dart objects into a list of JSON dictionaries for Python
+      
       final List<Map<String, dynamic>> payload = transactions
           .map(
             (t) => {
