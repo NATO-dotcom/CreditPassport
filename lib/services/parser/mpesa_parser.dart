@@ -13,8 +13,6 @@ class MpesaParser implements BaseParser {
   List<Transaction> parse(String rawText) {
     List<Transaction> extractedTransactions = [];
 
-    // THE FIX: This custom Regex handles Syncfusion's vertical squish format
-    // It grabs the 10-digit ID, the Timestamp, the Description, the Amount, and the Balance
     final RegExp transactionPattern = RegExp(
       r'([A-Z0-9]{10})\s*\n(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})\s*\n([\s\S]*?)\nCompleted\s*\n([-\d,]+\.\d{2})\s*\n([-\d,]+\.\d{2})',
       multiLine: true,
@@ -33,8 +31,6 @@ class MpesaParser implements BaseParser {
         // Remove commas so Dart can parse it as a double (e.g., "1,500.00" -> "1500.00")
         final String amountString = match.group(4)?.replaceAll(',', '') ?? '0';
 
-        // Safaricom natively adds a "-" sign to withdrawals in this format. 
-        // This is amazing because it means we don't have to guess based on words like "paybill"!
         final double rawAmount = double.parse(amountString);
 
         extractedTransactions.add(

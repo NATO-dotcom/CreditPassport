@@ -4,7 +4,7 @@ class Transaction {
   final String receiptNumber;
   final double amount;
   final String description;
-  final bool isInflow; // True for money in, False for money out
+  final bool isInflow; 
 
   Transaction({
     required this.date,
