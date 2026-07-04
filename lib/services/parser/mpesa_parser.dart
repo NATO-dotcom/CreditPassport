@@ -6,7 +6,7 @@ class MpesaParser implements BaseParser {
   bool isValidFormat(String rawText) {
     // Widened the net to catch both styles of M-Pesa statements
     return rawText.toLowerCase().contains('m-pesa statement') || 
-           rawText.contains('Receipt No');
+rawText.contains('Receipt No');
   }
 
   @override
@@ -44,7 +44,7 @@ class MpesaParser implements BaseParser {
         );
       } catch (e) {
         print('Error parsing row: $e');
-        // If one transaction fails, we skip it and keep reading the rest
+      
         continue;
       }
     }
