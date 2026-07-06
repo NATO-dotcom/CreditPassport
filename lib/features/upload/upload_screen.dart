@@ -1,11 +1,12 @@
+import 'package:credit_passport/features/dashboard/dashboard_screen.dart';
+import 'package:credit_passport/features/upload/upload_controller.dart';
 import 'package:credit_passport/widgets/mpesa_instructions_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'upload_controller.dart';
-import '../dashboard/dashboard_screen.dart';
-// Make sure this path matches exactly where you saved the widget!
+
+
 
 final selectedFileProvider = StateProvider<PlatformFile?>((ref) => null);
 
@@ -33,7 +34,6 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
 
   @override
   Widget build(BuildContext context) {
-    
     final selectedFile = ref.watch(selectedFileProvider);
     final uploadState = ref.watch(uploadControllerProvider);
 
@@ -50,7 +50,8 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
         foregroundColor: Colors.black,
       ),
       body: SafeArea(
-        child: Padding(
+        // FIX 1: We wrap everything in a SingleChildScrollView so it never overflows!
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -65,17 +66,19 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const Spacer(),
+                // FIX 1.5: Replaced Spacers with predictable SizedBoxes
+                const SizedBox(height: 32),
                 
                 _buildCoolDropzone(),
-                const Spacer(),
+                
+                const SizedBox(height: 32),
                 
                 _buildInstructionStepper(),
-                const Spacer(),
-              ] else ...[
                 
+                const SizedBox(height: 32),
+              ] else ...[
                 _buildFileCard(selectedFile.name),
-                const Spacer(),
+                const SizedBox(height: 32),
                 uploadState.when(
                   loading: () => const Center(
                     child: CircularProgressIndicator(color: Colors.teal),
@@ -109,6 +112,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
         InkWell(
           borderRadius: BorderRadius.circular(24),
           onTap: () async {
+            // Use the static pickFiles method to remain compatible with different versions
             FilePickerResult? result = await FilePicker.pickFiles(
               type: FileType.custom,
               allowedExtensions: ['pdf'],
@@ -160,9 +164,9 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
           icon: const Icon(Icons.help_outline, color: Colors.teal),
           label: const Text(
             'How do I get my M-Pesa statement?',
+            // FIX 2: Removed the underline decoration here!
             style: TextStyle(
               color: Colors.teal,
-              decoration: TextDecoration.underline,
             ),
           ),
         ),
@@ -230,8 +234,11 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
               ),
               IconButton(
                 icon: const Icon(Icons.cancel),
-                onPressed: () =>
-                    ref.read(selectedFileProvider.notifier).state = null,
+                onPressed: () {
+                  // Clears the text field when a file is removed to prevent old passwords lingering
+                  _passwordController.clear();
+                  ref.read(selectedFileProvider.notifier).state = null;
+                },
               ),
             ],
           ),

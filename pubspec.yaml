@@ -37,11 +37,11 @@ dependencies:
   flutter_riverpod: ^3.3.2
   file_picker: ^11.0.2
   syncfusion_flutter_pdf: ^33.2.13
+  fl_chart: ^1.2.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  fl_chart: ^0.69.0
   http: ^1.2.0
   pdf: ^3.11.1       
   printing: ^5.12.0
