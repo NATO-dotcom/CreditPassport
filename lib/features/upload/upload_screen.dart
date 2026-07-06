@@ -6,8 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
-
-
 final selectedFileProvider = StateProvider<PlatformFile?>((ref) => null);
 
 class UploadScreen extends ConsumerStatefulWidget {
@@ -50,7 +48,6 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
         foregroundColor: Colors.black,
       ),
       body: SafeArea(
-        // FIX 1: We wrap everything in a SingleChildScrollView so it never overflows!
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
@@ -66,37 +63,30 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                // FIX 1.5: Replaced Spacers with predictable SizedBoxes
                 const SizedBox(height: 32),
-                
+
                 _buildCoolDropzone(),
-                
+
                 const SizedBox(height: 32),
-                
+
                 _buildInstructionStepper(),
-                
+
                 const SizedBox(height: 32),
               ] else ...[
                 _buildFileCard(selectedFile.name),
                 const SizedBox(height: 32),
-                uploadState.when(
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(color: Colors.teal),
+                
+                if (uploadState.hasError && !uploadState.isLoading)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Text(
+                      uploadState.error.toString(),
+                      style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                  error: (error, stack) => Column(
-                    children: [
-                      Text(
-                        error.toString(),
-                        style: const TextStyle(color: Colors.red),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      _buildProcessButton(selectedFile.path!),
-                    ],
-                  ),
-                  data: (_) => _buildProcessButton(selectedFile.path!),
-                ),
+                  
+                _buildProcessButton(selectedFile.path!, uploadState.isLoading),
               ],
             ],
           ),
@@ -112,18 +102,27 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
         InkWell(
           borderRadius: BorderRadius.circular(24),
           onTap: () async {
-            // Use the static pickFiles method to remain compatible with different versions
+
+            try {
+              await FilePicker.clearTemporaryFiles();
+            } catch (e) {
+              // Ignore if there are no temp files to clear
+            }
+
             FilePickerResult? result = await FilePicker.pickFiles(
               type: FileType.custom,
               allowedExtensions: ['pdf'],
+              withData: true,
             );
+
             if (result != null) {
-              ref.read(selectedFileProvider.notifier).state = result.files.single;
+              ref.read(selectedFileProvider.notifier).state =
+                  result.files.single;
             }
           },
           child: Container(
             width: double.infinity,
-            height: 240, 
+            height: 240,
             decoration: BoxDecoration(
               color: Colors.teal.shade50.withOpacity(0.4),
               borderRadius: BorderRadius.circular(24),
@@ -164,10 +163,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
           icon: const Icon(Icons.help_outline, color: Colors.teal),
           label: const Text(
             'How do I get my M-Pesa statement?',
-            // FIX 2: Removed the underline decoration here!
-            style: TextStyle(
-              color: Colors.teal,
-            ),
+            style: TextStyle(color: Colors.teal),
           ),
         ),
       ],
@@ -235,7 +231,6 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
               IconButton(
                 icon: const Icon(Icons.cancel),
                 onPressed: () {
-                  
                   _passwordController.clear();
                   ref.read(selectedFileProvider.notifier).state = null;
                 },
@@ -266,27 +261,33 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
     );
   }
 
-  Widget _buildProcessButton(String filePath) {
+  Widget _buildProcessButton(String filePath, bool isLoading) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 18),
-          backgroundColor: Colors.teal.shade700,
+          backgroundColor: isLoading ? Colors.teal.shade400 : Colors.teal.shade700,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
         ),
-        onPressed: () async {
-          if (_passwordController.text.isNotEmpty) {
+        onPressed: isLoading ? null : () async {
+          final cleanPassword = _passwordController.text.trim();
+
+          if (cleanPassword.isNotEmpty) {
+            
+            await Future.delayed(const Duration(milliseconds: 150));
+
             await ref
                 .read(uploadControllerProvider.notifier)
-                .processStatement(filePath, _passwordController.text);
+                .processStatement(filePath, cleanPassword);
 
             if (ref.read(uploadControllerProvider).hasValue && mounted) {
               _passwordController.clear();
               ref.read(selectedFileProvider.notifier).state = null;
+
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -300,14 +301,23 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
             );
           }
         },
-        child: const Text(
-          'Process Locally',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
+        child: isLoading 
+            ? const SizedBox(
+                height: 24, 
+                width: 24, 
+                child: CircularProgressIndicator(
+                  color: Colors.white, 
+                  strokeWidth: 2.5,
+                ),
+              )
+            : const Text(
+                'Process Locally',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
       ),
     );
   }
-}
+} // <--- This bracket was missing!
 
 class _StepItem extends StatelessWidget {
   final IconData icon;
