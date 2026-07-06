@@ -64,6 +64,24 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
   }
 
+  // --- NEW: The Phased Status Stream Generator ---
+  Stream<String> _getLoadingMessages() async* {
+    final messages = [
+      "Securing local connection...",
+      "Extracting raw transaction data...",
+      "Analyzing financial consistency...",
+      "Calculating capital retention...",
+      "Generating cryptographic signature...",
+      "Finalizing Trust Blueprint..."
+    ];
+    
+    for (final message in messages) {
+      yield message;
+      // Waits 1.5 seconds before showing the next message
+      await Future.delayed(const Duration(milliseconds: 1500)); 
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final transactions = ref.watch(uploadControllerProvider).value ?? [];
@@ -87,17 +105,40 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
+  // --- UPGRADED: The Dynamic Loading State ---
   Widget _buildLoadingState() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CircularProgressIndicator(color: Colors.teal),
-          const SizedBox(height: 24),
-          Text(
-            'Trust Engine is crunching the numbers...',
-            style: TextStyle(color: Colors.grey.shade700, fontSize: 16),
-          )
+          const SizedBox(
+            height: 60,
+            width: 60,
+            child: CircularProgressIndicator(
+              color: Colors.teal,
+              strokeWidth: 4,
+            ),
+          ),
+          const SizedBox(height: 32),
+          
+          StreamBuilder<String>(
+            stream: _getLoadingMessages(),
+            initialData: "Initializing Trust Engine...",
+            builder: (context, snapshot) {
+              return AnimatedSwitcher(
+                duration: const Duration(milliseconds: 500),
+                child: Text(
+                  snapshot.data ?? "Processing...",
+                  key: ValueKey<String>(snapshot.data ?? "Processing"),
+                  style: TextStyle(
+                    color: Colors.teal.shade800, 
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -112,9 +153,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           children: [
             const Icon(Icons.error_outline, color: Colors.red, size: 60),
             const SizedBox(height: 16),
-            Text(
+            const Text(
               'Connection Failed',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -140,7 +181,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildDashboardContent(int txCount) {
-    // We can safely force unwrap here because this only builds if _serverScore is not null
     final score = _serverScore!;
 
     return SingleChildScrollView(
@@ -188,7 +228,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               );
 
               try {
-                // We already have the verified score and ID from the server! Just print the PDF.
                 await PdfGenerator.exportPassport(score, _verificationId!, txCount);
               } catch (e) {
                 if (context.mounted) {
