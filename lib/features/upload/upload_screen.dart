@@ -1,8 +1,11 @@
+import 'package:credit_passport/widgets/mpesa_instructions_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'upload_controller.dart';
 import '../dashboard/dashboard_screen.dart';
+// Make sure this path matches exactly where you saved the widget!
 
 final selectedFileProvider = StateProvider<PlatformFile?>((ref) => null);
 
@@ -100,43 +103,70 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
   }
 
   Widget _buildCoolDropzone() {
-    return InkWell(
-      borderRadius: BorderRadius.circular(24),
-      onTap: () async {
-        FilePickerResult? result = await FilePicker.platform.pickFiles(
-          type: FileType.custom,
-          allowedExtensions: ['pdf'],
-        );
-        if (result != null) {
-          
-          ref.read(selectedFileProvider.notifier).state = result.files.single;
-        }
-      },
-      child: Container(
-        width: double.infinity,
-        height: 240, 
-        decoration: BoxDecoration(
-          color: Colors.teal.shade50.withOpacity(0.4),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        InkWell(
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: Colors.teal.shade300,
-            width: 2,
-            style: BorderStyle.solid,
+          onTap: () async {
+            FilePickerResult? result = await FilePicker.pickFiles(
+              type: FileType.custom,
+              allowedExtensions: ['pdf'],
+            );
+            if (result != null) {
+              ref.read(selectedFileProvider.notifier).state = result.files.single;
+            }
+          },
+          child: Container(
+            width: double.infinity,
+            height: 240, 
+            decoration: BoxDecoration(
+              color: Colors.teal.shade50.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: Colors.teal.shade300,
+                width: 2,
+                style: BorderStyle.solid,
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.cloud_upload, size: 80, color: Colors.teal.shade400),
+                const SizedBox(height: 20),
+                const Text(
+                  'Tap to Select PDF',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
           ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.cloud_upload, size: 80, color: Colors.teal.shade400),
-            const SizedBox(height: 20),
-            const Text(
-              'Tap to Select PDF',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        const SizedBox(height: 16),
+        TextButton.icon(
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) => Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+                child: const MpesaInstructionsSheet(),
+              ),
+            );
+          },
+          icon: const Icon(Icons.help_outline, color: Colors.teal),
+          label: const Text(
+            'How do I get my M-Pesa statement?',
+            style: TextStyle(
+              color: Colors.teal,
+              decoration: TextDecoration.underline,
             ),
-          ],
+          ),
         ),
-      ),
-    
+      ],
     );
   }
 
@@ -229,7 +259,6 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
     );
   }
 
-  // THE FIX: Notice this function now accepts the filePath string directly!
   Widget _buildProcessButton(String filePath) {
     return SizedBox(
       width: double.infinity,
@@ -244,8 +273,6 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
         ),
         onPressed: () async {
           if (_passwordController.text.isNotEmpty) {
-            
-            // THE FIX: We pass the filePath string straight into the controller
             await ref
                 .read(uploadControllerProvider.notifier)
                 .processStatement(filePath, _passwordController.text);
