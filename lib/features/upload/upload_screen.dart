@@ -235,7 +235,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
               IconButton(
                 icon: const Icon(Icons.cancel),
                 onPressed: () {
-                  // Clears the text field when a file is removed to prevent old passwords lingering
+                  
                   _passwordController.clear();
                   ref.read(selectedFileProvider.notifier).state = null;
                 },
@@ -286,6 +286,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
 
             if (ref.read(uploadControllerProvider).hasValue && mounted) {
               _passwordController.clear();
+              ref.read(selectedFileProvider.notifier).state = null;
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -328,7 +329,7 @@ class _StepItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.15),
+              color: iconColor.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, size: 20, color: iconColor),
