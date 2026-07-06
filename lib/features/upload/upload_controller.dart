@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:credit_passport/models/transaction.dart';
 import 'package:credit_passport/services/parser/mpesa_parser.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 // The provider that exposes our controller to the UI

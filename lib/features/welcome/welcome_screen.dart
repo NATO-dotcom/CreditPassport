@@ -1,5 +1,6 @@
+import 'package:credit_passport/features/upload/upload_screen.dart';
 import 'package:flutter/material.dart';
-import '../upload/upload_screen.dart';
+
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
